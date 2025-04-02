@@ -1,0 +1,31 @@
+# Ignorar archivos de datos preprocesados (archivos .npy)
+AnalisisDatos/**/*.npy
+Entrenamiento/**/*.npy
+ModelosGuardados/
+resultados/**/*.npy
+
+# Ignorar datasets completos (No subir imágenes originales)
+Datos/
+chest_xray/
+dataset1/
+dataset2/
+
+# Ignorar entorno virtual (env)
+env/
+venv/
+
+# Ignorar archivos generados por Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignorar archivos específicos de VSCode
+.vscode/
+
+# Ignorar archivos de caché de Jupyter (si usas notebooks)
+.ipynb_checkpoints/
+
+# Ignorar archivos temporales o de sistema
+.DS_Store
+Thumbs.db
