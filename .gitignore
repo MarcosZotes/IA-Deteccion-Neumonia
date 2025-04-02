@@ -7,8 +7,7 @@ resultados/**/*.npy
 # Ignorar datasets completos (No subir imágenes originales)
 Datos/
 chest_xray/
-dataset1/
-dataset2/
+*.npy
 
 # Ignorar entorno virtual (env)
 env/
