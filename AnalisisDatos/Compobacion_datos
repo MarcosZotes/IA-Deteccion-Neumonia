@@ -1,0 +1,12 @@
+import numpy as np
+
+try:
+    X_train = np.load('./AnalisisDatos/TRAIN/X.npy')
+    y_train = np.load('./AnalisisDatos/TRAIN/y.npy')
+    
+    print(f"X_train shape: {X_train.shape}")
+    print(f"y_train shape: {y_train.shape}")
+    print(f"Unique labels in y_train: {np.unique(y_train)}")
+    
+except Exception as e:
+    print(f"Error al cargar archivos: {e}")
