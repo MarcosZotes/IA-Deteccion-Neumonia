@@ -1,12 +1,31 @@
 import numpy as np
 
-try:
-    X_train = np.load('./AnalisisDatos/TRAIN/X.npy')
-    y_train = np.load('./AnalisisDatos/TRAIN/y.npy')
-    
-    print(f"X_train shape: {X_train.shape}")
-    print(f"y_train shape: {y_train.shape}")
-    print(f"Unique labels in y_train: {np.unique(y_train)}")
-    
-except Exception as e:
-    print(f"Error al cargar archivos: {e}")
+# Cargar los datos procesados
+X_train = np.load('./AnalisisDatos/TRAIN/X.npy')
+y_train = np.load('./AnalisisDatos/TRAIN/y.npy')
+
+X_val = np.load('./AnalisisDatos/VAL/X.npy')
+y_val = np.load('./AnalisisDatos/VAL/y.npy')
+
+X_test = np.load('./AnalisisDatos/TEST/X.npy')
+y_test = np.load('./AnalisisDatos/TEST/y.npy')
+
+# Verificar las dimensiones
+print("Dimensiones de X_train:", X_train.shape)
+print("Dimensiones de y_train:", y_train.shape)
+
+print("\nDimensiones de X_val:", X_val.shape)
+print("Dimensiones de y_val:", y_val.shape)
+
+print("\nDimensiones de X_test:", X_test.shape)
+print("Dimensiones de y_test:", y_test.shape)
+
+print("Etiquetas únicas en y_train:", np.unique(y_train))
+print("Etiquetas únicas en y_val:", np.unique(y_val))
+
+unique_train, counts_train = np.unique(y_train, return_counts=True)
+print("Distribución de clases en y_train:", dict(zip(unique_train, counts_train)))
+
+unique_val, counts_val = np.unique(y_val, return_counts=True)
+print("Distribución de clases en y_val:", dict(zip(unique_val, counts_val)))
+
