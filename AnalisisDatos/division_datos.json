@@ -1,0 +1,17 @@
+{
+    "train": {
+        "NORMAL": 1191,
+        "PNEUMONIA_VIRAL": 1295,
+        "PNEUMONIA_BACTERIAL": 2380
+    },
+    "val": {
+        "NORMAL": 158,
+        "PNEUMONIA_VIRAL": 323,
+        "PNEUMONIA_BACTERIAL": 606
+    },
+    "test": {
+        "NORMAL": 234,
+        "PNEUMONIA_VIRAL": 406,
+        "PNEUMONIA_BACTERIAL": 733
+    }
+}
