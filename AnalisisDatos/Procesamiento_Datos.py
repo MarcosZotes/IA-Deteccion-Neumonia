@@ -1,87 +1,75 @@
-# Marcos Zotes Calleja
-# Universidad Internacional de la Rioja
-# Trabajo de Fin de Estudios, 2024-2025
-
 import os
 import numpy as np
-import tensorflow as tf
-from sklearn.model_selection import train_test_split
-from tqdm import tqdm
-import json
-
-# Directorio donde se guardaron los archivos originales
-DATA_PATH = './Datos/chest_xray'
+import cv2
+import random
 
 # Hiperparámetros
 IMG_SIZE = 224
-TRAIN_SPLIT = 0.7
-VAL_SPLIT = 0.15
-TEST_SPLIT = 0.15
+DATASET_PATH = './Datos/chest_xray/'  # Ruta de la carpeta que contiene train, val y test
+
+# Etiquetas asignadas a cada clase
+LABELS = {'NORMAL': 0, 'PNEUMONIA_VIRAL': 1, 'PNEUMONIA_BACTERIAL': 2}
+
+
+def cargar_imagenes(directorio, etiqueta):
+    X = []
+    y = []
+
+    for img_name in os.listdir(directorio):
+        img_path = os.path.join(directorio, img_name)
+        if not img_name.lower().endswith(('.png', '.jpg', '.jpeg')):
+            continue  # Ignorar archivos que no sean imágenes
+        try:
+            img = cv2.imread(img_path)
+            img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            X.append(img)
+            y.append(etiqueta)
+        except Exception as e:
+            print(f"Error al procesar la imagen {img_name}: {e}")
+
+    return np.array(X), np.array(y)
 
 
 
-def cargar_datos_combinados():
-    X = []  # Imágenes
-    y = []  # Etiquetas
+def procesar_datos():
+    conjuntos = ['train', 'val', 'test']
+    datos_finales = {}
 
-    for subfolder in ['train', 'val', 'test']:
-        for categoria in ['NORMAL', 'PNEUMONIA']:
-            etiqueta = 0 if categoria == 'NORMAL' else 1
-            ruta_categoria = os.path.join(DATA_PATH, subfolder, categoria)
+    for conjunto in conjuntos:
+        X, y = [], []
 
-            for archivo in tqdm(os.listdir(ruta_categoria), desc=f'Procesando {categoria} en {subfolder}', unit='imágenes'):
+        for clase, etiqueta in LABELS.items():
+            ruta_clase = os.path.join(DATASET_PATH, conjunto, 'PNEUMONIA' if 'PNEUMONIA' in clase else clase)
+
+            if clase == 'PNEUMONIA_VIRAL':
+                archivos = [f for f in os.listdir(ruta_clase) if 'virus' in f.lower()]
+            elif clase == 'PNEUMONIA_BACTERIAL':
+                archivos = [f for f in os.listdir(ruta_clase) if 'bacteria' in f.lower()]
+            else:  # Para la clase NORMAL
+                archivos = os.listdir(ruta_clase)
+
+            for img_name in archivos:
+                img_path = os.path.join(ruta_clase, img_name)
+                if not img_name.lower().endswith(('.png', '.jpg', '.jpeg')):
+                    continue  # Ignorar archivos que no sean imágenes
                 try:
-                    ruta_imagen = os.path.join(ruta_categoria, archivo)
-                    imagen = tf.keras.preprocessing.image.load_img(ruta_imagen, target_size=(IMG_SIZE, IMG_SIZE))
-                    imagen = tf.keras.preprocessing.image.img_to_array(imagen)
-                    imagen = imagen / 255.0  # Normalizar
-                    X.append(imagen)
+                    img = cv2.imread(img_path)
+                    img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
+                    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                    X.append(img)
                     y.append(etiqueta)
-
                 except Exception as e:
-                    print(f"Error al procesar la imagen {archivo}: {e}")
+                    print(f"Error al procesar la imagen {img_name}: {e}")
 
-    X = np.array(X)
-    y = np.array(y)
+        X = np.array(X)
+        y = np.array(y)
 
-    return X, y
+        print(f"Conjunto: {conjunto} - Imágenes procesadas: {len(X)} - Etiquetas únicas: {np.unique(y)}")
 
-
-def dividir_y_guardar_datos(X, y):
-    X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=(1 - TRAIN_SPLIT), random_state=42, stratify=y)
-    X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=(TEST_SPLIT / (TEST_SPLIT + VAL_SPLIT)), random_state=42, stratify=y_temp)
-
-    # Guardar los conjuntos de datos
-    os.makedirs('./AnalisisDatos/TRAIN', exist_ok=True)
-    os.makedirs('./AnalisisDatos/VAL', exist_ok=True)
-    os.makedirs('./AnalisisDatos/TEST', exist_ok=True)
-
-    np.save('./AnalisisDatos/TRAIN/X.npy', X_train)
-    np.save('./AnalisisDatos/TRAIN/y.npy', y_train)
-    np.save('./AnalisisDatos/VAL/X.npy', X_val)
-    np.save('./AnalisisDatos/VAL/y.npy', y_val)
-    np.save('./AnalisisDatos/TEST/X.npy', X_test)
-    np.save('./AnalisisDatos/TEST/y.npy', y_test)
-
-    # Guardar un archivo JSON con información de la división
-    division_info = {
-        'TRAIN': len(X_train),
-        'VAL': len(X_val),
-        'TEST': len(X_test)
-    }
-
-    with open('./AnalisisDatos/division_info.json', 'w') as json_file:
-        json.dump(division_info, json_file, indent=4)
-
-    print(f"\n✅ Datos divididos y guardados exitosamente.")
-    print(f"TRAIN: {len(X_train)} imágenes")
-    print(f"VAL: {len(X_val)} imágenes")
-    print(f"TEST: {len(X_test)} imágenes")
+        np.save(os.path.join(f'./AnalisisDatos/{conjunto}', 'X.npy'), X)
+        np.save(os.path.join(f'./AnalisisDatos/{conjunto}', 'y.npy'), y)
 
 
 if __name__ == "__main__":
-    X, y = cargar_datos_combinados()
-    dividir_y_guardar_datos(X, y)
-    print("\n✅ Proceso de carga y división de datos completado.")
-    
-    
+    procesar_datos()
