@@ -28,3 +28,10 @@ __pycache__/
 # Ignorar archivos temporales o de sistema
 .DS_Store
 Thumbs.db
+
+# Ignorar modelos pesados de Keras o PyTorch
+*.h5
+*.ckpt
+*.pb
+*.pt
+*.onnx
