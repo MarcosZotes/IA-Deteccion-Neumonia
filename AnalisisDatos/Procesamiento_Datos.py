@@ -2,74 +2,121 @@ import os
 import numpy as np
 import cv2
 import random
+import matplotlib.pyplot as plt
+import json
 
 # Hiperparámetros
 IMG_SIZE = 224
-DATASET_PATH = './Datos/chest_xray/'  # Ruta de la carpeta que contiene train, val y test
+DATASET_PATH = './Datos/chest_xray/'  # Contiene train, val y test
 
-# Etiquetas asignadas a cada clase
-LABELS = {'NORMAL': 0, 'PNEUMONIA_VIRAL': 1, 'PNEUMONIA_BACTERIAL': 2}
+# Etiquetas
+LABELS = {
+    'NORMAL': 0,
+    'PNEUMONIA_VIRAL': 1,
+    'PNEUMONIA_BACTERIAL': 2
+}
 
+random.seed(42)
+np.random.seed(42)
 
-def cargar_imagenes(directorio, etiqueta):
-    X = []
-    y = []
+def cargar_y_balancear():
+    data_por_clase = {etiqueta: [] for etiqueta in LABELS.values()}
 
-    for img_name in os.listdir(directorio):
-        img_path = os.path.join(directorio, img_name)
-        if not img_name.lower().endswith(('.png', '.jpg', '.jpeg')):
-            continue  # Ignorar archivos que no sean imágenes
-        try:
-            img = cv2.imread(img_path)
-            img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            X.append(img)
-            y.append(etiqueta)
-        except Exception as e:
-            print(f"Error al procesar la imagen {img_name}: {e}")
-
-    return np.array(X), np.array(y)
-
-
-
-def procesar_datos():
-    conjuntos = ['train', 'val', 'test']
-    datos_finales = {}
-
-    for conjunto in conjuntos:
-        X, y = [], []
-
+    for subcarpeta in ['train', 'val', 'test']:
         for clase, etiqueta in LABELS.items():
-            ruta_clase = os.path.join(DATASET_PATH, conjunto, 'PNEUMONIA' if 'PNEUMONIA' in clase else clase)
+            ruta_clase = os.path.join(DATASET_PATH, subcarpeta, 'PNEUMONIA' if 'PNEUMONIA' in clase else clase)
+            if not os.path.exists(ruta_clase):
+                continue
 
             if clase == 'PNEUMONIA_VIRAL':
                 archivos = [f for f in os.listdir(ruta_clase) if 'virus' in f.lower()]
             elif clase == 'PNEUMONIA_BACTERIAL':
                 archivos = [f for f in os.listdir(ruta_clase) if 'bacteria' in f.lower()]
-            else:  # Para la clase NORMAL
+            else:
                 archivos = os.listdir(ruta_clase)
 
-            for img_name in archivos:
-                img_path = os.path.join(ruta_clase, img_name)
-                if not img_name.lower().endswith(('.png', '.jpg', '.jpeg')):
-                    continue  # Ignorar archivos que no sean imágenes
-                try:
-                    img = cv2.imread(img_path)
-                    img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
-                    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                    X.append(img)
-                    y.append(etiqueta)
-                except Exception as e:
-                    print(f"Error al procesar la imagen {img_name}: {e}")
+            archivos = [f for f in archivos if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+            for nombre in archivos:
+                data_por_clase[etiqueta].append(os.path.join(ruta_clase, nombre))
+
+            print(f"[{subcarpeta.upper()}] {clase} ({etiqueta}) -> {len(archivos)} imágenes")
+
+    min_cantidad = min(len(v) for v in data_por_clase.values())
+    print(f"\nBalanceando cada clase a {min_cantidad} imágenes")
+
+    datos = []
+    for etiqueta, lista in data_por_clase.items():
+        random.shuffle(lista)
+        for ruta in lista[:min_cantidad]:
+            datos.append((ruta, etiqueta))
+
+    random.shuffle(datos)
+    return datos
+
+def dividir_y_guardar(datos):
+    conjuntos = {'train': [], 'val': [], 'test': []}
+    por_clase = {etiqueta: [] for etiqueta in LABELS.values()}
+
+    for ruta, etiqueta in datos:
+        por_clase[etiqueta].append(ruta)
+
+    for etiqueta, lista_rutas in por_clase.items():
+        total = len(lista_rutas)
+        train_end = int(0.7 * total)
+        val_end = train_end + int(0.2 * total)
+
+        conjuntos['train'].extend([(ruta, etiqueta) for ruta in lista_rutas[:train_end]])
+        conjuntos['val'].extend([(ruta, etiqueta) for ruta in lista_rutas[train_end:val_end]])
+        conjuntos['test'].extend([(ruta, etiqueta) for ruta in lista_rutas[val_end:]])
+
+    distribucion_json = {}
+
+    for nombre, lista in conjuntos.items():
+        X, y = [], []
+        for ruta, etiqueta in lista:
+            try:
+                img = cv2.imread(ruta)
+                img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                X.append(img)
+                y.append(etiqueta)
+            except Exception as e:
+                print(f"❌ Error con {ruta}: {e}")
 
         X = np.array(X)
         y = np.array(y)
 
-        print(f"Conjunto: {conjunto} - Imágenes procesadas: {len(X)} - Etiquetas únicas: {np.unique(y)}")
+        os.makedirs(f'./AnalisisDatos/{nombre.upper()}', exist_ok=True)
+        np.save(f'./AnalisisDatos/{nombre.upper()}/X.npy', X)
+        np.save(f'./AnalisisDatos/{nombre.upper()}/y.npy', y)
+        print(f"✅ {nombre.upper()}: {len(X)} imágenes")
 
-        np.save(os.path.join(f'./AnalisisDatos/{conjunto}', 'X.npy'), X)
-        np.save(os.path.join(f'./AnalisisDatos/{conjunto}', 'y.npy'), y)
+        # Guardar distribución para el JSON
+        clases, conteo = np.unique(y, return_counts=True)
+        distribucion_json[nombre.upper()] = {
+            'total': int(len(y)),
+            'clases': {str(clase): int(num) for clase, num in zip(clases, conteo)}
+        }
 
+        # Gráfica
+        etiquetas = ['NORMAL', 'VIRAL', 'BACTERIAL']
+        plt.figure(figsize=(8, 5))
+        plt.bar(etiquetas, conteo, color='skyblue')
+        plt.title(f"Distribución de clases en el conjunto {nombre.upper()}")
+        plt.xlabel("Clase")
+        plt.ylabel("Número de imágenes")
+        plt.grid(True, linestyle='--', alpha=0.5)
+        os.makedirs('./AnalisisDatos/ComprobacionDatos', exist_ok=True)
+        plt.savefig(f'./AnalisisDatos/ComprobacionDatos/{nombre.lower()}_distribucion.png')
+        plt.close()
+
+    # Guardar JSON de distribución
+    ruta_json = './AnalisisDatos/division_datos.json'
+    with open(ruta_json, 'w') as f:
+        json.dump(distribucion_json, f, indent=4)
+
+    print(f"\nArchivo de distribución guardado en: {ruta_json}")
 
 if __name__ == "__main__":
-    procesar_datos()
+    datos = cargar_y_balancear()
+    dividir_y_guardar(datos)

@@ -1,17 +1,26 @@
 {
-    "train": {
-        "NORMAL": 1191,
-        "PNEUMONIA_VIRAL": 1295,
-        "PNEUMONIA_BACTERIAL": 2380
+    "TRAIN": {
+        "total": 2322,
+        "clases": {
+            "0": 774,
+            "1": 774,
+            "2": 774
+        }
     },
-    "val": {
-        "NORMAL": 158,
-        "PNEUMONIA_VIRAL": 323,
-        "PNEUMONIA_BACTERIAL": 606
+    "VAL": {
+        "total": 663,
+        "clases": {
+            "0": 221,
+            "1": 221,
+            "2": 221
+        }
     },
-    "test": {
-        "NORMAL": 234,
-        "PNEUMONIA_VIRAL": 406,
-        "PNEUMONIA_BACTERIAL": 733
+    "TEST": {
+        "total": 336,
+        "clases": {
+            "0": 112,
+            "1": 112,
+            "2": 112
+        }
     }
 }
