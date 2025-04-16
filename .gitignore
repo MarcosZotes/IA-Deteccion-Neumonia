@@ -35,3 +35,12 @@ Thumbs.db
 *.pb
 *.pt
 *.onnx
+
+# Ignorar el Backup del Entrenamiento
+Back_UP_Entrenamiento.py
+
+# Ignorar archivos de resultados de GradCAM
+Resultados/GradCAM/img_GradCAM/
+
+# Ignorar archivos de resultados de Entrenamiento
+Entrenamiento/MetricasPorEntrenamiento/
