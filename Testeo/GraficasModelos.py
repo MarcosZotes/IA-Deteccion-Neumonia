@@ -9,7 +9,8 @@ ruta_csv = './Testeo/Comparativas/Metricas/comparativa_ultimos_modelos.csv'
 df = pd.read_csv(ruta_csv)
 
 # Asegurar carpeta de salida
-os.makedirs('./Testeo/Comparativas/Metricas/Graficas', exist_ok=True)
+graficas_path = './Testeo/Comparativas/Graficas'
+os.makedirs(graficas_path, exist_ok=True)
 
 # Gráficas de barras por métrica global
 metricas_globales = ['Val_Accuracy', 'Macro_F1', 'AUC', 'Macro_Precision', 'Macro_Recall']
@@ -25,15 +26,15 @@ for metrica in metricas_globales:
     plt.xticks(rotation=45, ha='right')
     plt.ylim(0, 1)
     plt.tight_layout()
-    plt.savefig(f'./Testeo/Comparativas/Metricas/Graficas/{metrica}_barplot.png')
+    plt.savefig(os.path.join(graficas_path, f'{metrica}_barplot.png'))
     plt.close()
 
 print("[✔] Gráficas de barras generadas.")
 
-# Radar plot por clase para top 3
+# Radar plot por clase para top 5
 from math import pi
 
-top3 = df.sort_values(by='Macro_F1', ascending=False).head(3)
+top3 = df.sort_values(by='Macro_F1', ascending=False).head(5)
 
 for _, row in top3.iterrows():
     etiquetas = ['Precision_Clase_0', 'Recall_Clase_0', 'F1_Clase_0',
@@ -54,7 +55,7 @@ for _, row in top3.iterrows():
     ax.fill(angles, valores, alpha=0.3)
     plt.title(f'Radar por clase - {row["Nombre_Modelo"]}', size=14)
     plt.tight_layout()
-    plt.savefig(f'./Testeo/Comparativas/Metricas/Graficas/radar_{row["Nombre_Modelo"]}.png')
+    plt.savefig(os.path.join(graficas_path, f'radar_{row["Nombre_Modelo"]}.png'))
     plt.close()
 
 print("[✔] Radar plots por clase generados para TOP 3 modelos.")
@@ -70,13 +71,13 @@ plt.ylabel('AUC')
 plt.xlim(0, 1)
 plt.ylim(0, 1)
 plt.tight_layout()
-plt.savefig('./Testeo/Comparativas/Metricas/Graficas/scatter_f1_auc.png')
+plt.savefig(os.path.join(graficas_path, 'scatter_f1_auc.png'))
 plt.close()
 
 print("[✔] Scatter plot F1 vs AUC generado.")
 
 # === EXPORTAR A .md ===
-md_path = './Testeo/Comparativas/Metricas/Graficas/graficas_resultados.md'
+md_path = os.path.join(graficas_path, 'graficas_resultados.md')
 with open(md_path, 'w', encoding='utf-8') as f:
     f.write("# Comparativa de Modelos IA - Gráficas\n\n")
 
@@ -97,7 +98,7 @@ with open(md_path, 'w', encoding='utf-8') as f:
 print(f"[✔] Archivo Markdown generado: {md_path}")
 
 # === EXPORTAR A .tex ===
-tex_path = './Testeo/Comparativas/Metricas/Graficas/graficas_resultados.tex'
+tex_path = os.path.join(graficas_path, 'graficas_resultados.tex')
 with open(tex_path, 'w', encoding='utf-8') as f:
     f.write("\\section{Comparativa de Modelos IA - Gráficas}\n")
 
