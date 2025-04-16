@@ -44,3 +44,12 @@ Resultados/GradCAM/img_GradCAM/
 
 # Ignorar archivos de resultados de Entrenamiento
 Entrenamiento/MetricasPorEntrenamiento/
+
+# Ignorar todo el contenido dentro de Metricas
+Metricas/
+
+# Ignorar toda la carpeta MatrizConfusion
+MatrizConfusion/
+
+# Ignorar toda la carpeta PredccionesIncorrectas
+PrediccionesIncorrectas/
