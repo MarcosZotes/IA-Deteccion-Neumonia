@@ -1,0 +1,17 @@
+{
+    "ID_Entrenamiento": "Entrenamiento_86745",
+    "Modelo": "EfficientNetB0 + FineTuning parcial",
+    "Tama\u00f1o_imagen": 224,
+    "Batch_size": 32,
+    "Epochs": 60,
+    "Learning_rate": 0.0001,
+    "Optimizador": "AdamW",
+    "Loss": "Focal Loss (gamma=2.0, alpha=[0.2, 0.4, 0.4])",
+    "Augmentacion": [
+        "Clase 2: flip, contraste (0.6\u20131.4), brillo (\u00b10.2), saturaci\u00f3n (0.6\u20131.4), hue (\u00b10.08), crop, rotaci\u00f3n aleatoria",
+        "Clases 0 y 1: flip horizontal"
+    ],
+    "Grad-CAM": true,
+    "Visualizaci\u00f3n de errores y aciertos": true,
+    "Normalizaci\u00f3n visual": "img / 255.0"
+}

@@ -1,0 +1,20 @@
+{
+    "ID_Entrenamiento": "Entrenamiento_86747",
+    "Modelo": "Functional + FineTuning parcial",
+    "Tama\u00f1o_imagen": 224,
+    "Batch_size": 32,
+    "Epochs": 60,
+    "Learning_rate": 1.9999999494757503e-05,
+    "Optimizador": "RMSprop",
+    "Loss": "Loss personalizada",
+    "Augmentacion": [
+        "RandomFlip",
+        "RandomRotation",
+        "RandomZoom",
+        "RandomTranslation",
+        "RandomContrast"
+    ],
+    "Grad-CAM": true,
+    "Visualizaci\u00f3n de errores y aciertos": true,
+    "Normalizaci\u00f3n visual": "img / 255.0"
+}

@@ -1,0 +1,20 @@
+{
+    "ID_Entrenamiento": "Entrenamiento_86742",
+    "Modelo": "EfficientNetB0 + FineTuning parcial",
+    "Tama\u00f1o_imagen": 224,
+    "Batch_size": 32,
+    "Epochs": 60,
+    "Learning_rate": 0.0001,
+    "Optimizador": "RMSprop",
+    "Loss": "Focal Loss (gamma=2.0, alpha=0.25)",
+    "Augmentacion": [
+        "RandomFlip (horizontal)",
+        "RandomRotation (0.1)",
+        "RandomZoom (0.1)",
+        "RandomTranslation (0.1, 0.1)",
+        "RandomContrast (0.1)"
+    ],
+    "Grad-CAM": true,
+    "Visualizaci\u00f3n de errores y aciertos": true,
+    "Normalizaci\u00f3n visual": "img / 255.0"
+}
