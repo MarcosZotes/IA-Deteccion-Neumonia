@@ -206,11 +206,11 @@ indices_2 = np.where(y_test == 2)[0]
 
 np.random.seed(42)
 sample_idx = np.concatenate([
-    np.random.choice(indices_0, size=30, replace=False),
-    np.random.choice(indices_1, size=30, replace=False),
-    np.random.choice(indices_2, size=30, replace=False),
-    np.random.choice(len(y_test), size=110, replace=False)
-])
+    np.random.choice(indices_0, size=90, replace=False),
+    np.random.choice(indices_1, size=90, replace=False),
+    np.random.choice(indices_2, size=90, replace=False),
+    np.random.choice(len(y_test), size=330, replace=False)
+]) # Total de imagenes escogidas 690
 
 y_gradcam_real = []
 y_gradcam_pred = []
