@@ -1,0 +1,28 @@
+{
+    "ID_Entrenamiento": "Entrenamiento_86759",
+    "Modelo": "Functional + FineTuning parcial",
+    "Tama\u00f1o_imagen": 224,
+    "Batch_size": 32,
+    "Epochs": 100,
+    "Learning_rate": 3.999999989900971e-06,
+    "Optimizador": "RMSprop",
+    "Loss": "Loss personalizada",
+    "Augmentacion": {
+        "Clase 0 y 2 (leve)": [
+            "RandomFlip",
+            "RandomRotation",
+            "RandomZoom",
+            "RandomContrast"
+        ],
+        "Clase 1 (agresiva)": [
+            "RandomFlip",
+            "RandomRotation",
+            "RandomZoom",
+            "RandomTranslation",
+            "RandomContrast"
+        ]
+    },
+    "Grad-CAM": true,
+    "Visualizaci\u00f3n de errores y aciertos": true,
+    "Normalizaci\u00f3n visual": "img / 255.0"
+}

@@ -1,0 +1,41 @@
+{
+    "ID_Entrenamiento": "Entrenamiento_86754",
+    "Modelo": "Functional + FineTuning parcial",
+    "Tama\u00f1o_imagen": 224,
+    "Batch_size": 64,
+    "Epochs": 100,
+    "Learning_rate": {
+        "module": "keras.optimizers.schedules",
+        "class_name": "CosineDecay",
+        "config": {
+            "initial_learning_rate": 0.001,
+            "decay_steps": 3600,
+            "alpha": 1e-05,
+            "name": "CosineDecay",
+            "warmup_target": null,
+            "warmup_steps": 0
+        },
+        "registered_name": null
+    },
+    "Optimizador": "AdamW",
+    "Loss": "Loss personalizada",
+    "Augmentacion": {
+        "Clase 0 y 2": [
+            "RandomFlip",
+            "RandomRotation",
+            "RandomZoom",
+            "RandomTranslation",
+            "RandomContrast"
+        ],
+        "Clase 1": [
+            "RandomFlip",
+            "RandomRotation",
+            "RandomZoom",
+            "RandomTranslation",
+            "RandomContrast"
+        ]
+    },
+    "Grad-CAM": true,
+    "Visualizaci\u00f3n de errores y aciertos": true,
+    "Normalizaci\u00f3n visual": "img / 255.0"
+}
