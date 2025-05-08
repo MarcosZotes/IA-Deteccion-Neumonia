@@ -1,7 +1,7 @@
 # Ignorar archivos de datos preprocesados (archivos .npy)
 AnalisisDatos/**/*.npy
 Entrenamiento/**/*.npy
-
+ModelosGuardados/
 resultados/**/*.npy
 
 # Ignorar datasets completos (No subir imágenes originales)
