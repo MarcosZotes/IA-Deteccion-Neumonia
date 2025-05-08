@@ -53,6 +53,11 @@ model.compile(optimizer=keras.optimizers.RMSprop(learning_rate=LEARNING_RATE),
               loss=sparse_categorical_focal_loss(alpha=0.25),
               metrics=['accuracy'])
 
+# === GUARDAR MODELO COMO "modelo_final.keras" ===
+modelo_final_save_path = './ModelosGuardados/modelo_final.keras'
+model.save(modelo_final_save_path)
+print(f"[✔] Copia del modelo guardada en: {modelo_final_save_path}")
+
 # === PREDICCIÓN Y MÉTRICAS ===
 start = time.time()
 y_pred_prob = model.predict(test_dataset)
