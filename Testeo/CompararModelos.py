@@ -1,3 +1,14 @@
+# =============================================================================
+# Nombre del archivo: CompararModelos.py
+# Autor: Marcos Zotes Calleja
+# Proyecto: Herramienta médica para la detección de tipos de neumonía basada en IA
+# Descripción:
+# Script que evalúa automáticamente los últimos modelos entrenados en el sistema.
+# Calcula métricas como Accuracy, AUC, F1-Score, Precisión y Recall macro y por clase.
+# También guarda los resultados en archivos CSV y JSON para su posterior análisis.
+# =============================================================================
+
+# === IMPOTAR LIBRERÍAS ===
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # 0 = todos, 1 = info, 2 = warning, 3 = error
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
@@ -19,13 +30,13 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 from sklearn.exceptions import UndefinedMetricWarning
 warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
 
-
-
 # === CONFIGURACIÓN GENERAL ===
 LEARNING_RATE = 1e-4
 base_path = './Testeo/Comparativas'
 matriz_conf_path = os.path.join(base_path, 'MatrizConfusion')
 errores_path = os.path.join(base_path, 'PrediccionesIncorrectas')
+
+# Crear directorios si no existen
 os.makedirs(os.path.join(base_path, 'Metricas'), exist_ok=True)
 os.makedirs(matriz_conf_path, exist_ok=True)
 os.makedirs(errores_path, exist_ok=True)
@@ -34,6 +45,7 @@ os.makedirs(errores_path, exist_ok=True)
 X_val = np.load('./AnalisisDatos/val/X.npy').astype("float32")
 y_val = np.load('./AnalisisDatos/val/y.npy')
 
+# === FUNCIÓN: CARGAR CONFIGURACIÓN DE UN MODELO ===
 def cargar_configuracion(id_entrenamiento):
     ruta = f'./Entrenamiento/Config_Entrenamiento/config_{id_entrenamiento}.json'
     if os.path.exists(ruta):
@@ -42,6 +54,7 @@ def cargar_configuracion(id_entrenamiento):
             return config.get("Tamaño_imagen", 224), config.get("Batch_size", 32)
     return 224, 32
 
+# === FUNCIÓN: FOCAL LOSS PARA EVALUACIÓN ===
 def sparse_categorical_focal_loss(gamma=2., alpha=0.25):
     if alpha is None:
         alpha = [1.0] * 3
@@ -56,6 +69,7 @@ def sparse_categorical_focal_loss(gamma=2., alpha=0.25):
         return alpha_weight * focal_weight * cross_entropy
     return loss
 
+# === FUNCIÓN: OBTENER ÚLTIMOS MODELOS GUARDADOS ===
 def obtener_ultimos_modelos(carpeta='./ModelosGuardados', cantidad=50, filtro_ids=None):
     archivos = [f for f in os.listdir(carpeta) if f.endswith('.keras') and f.startswith('prueba_modelo')]
     if filtro_ids:
@@ -71,6 +85,7 @@ ultimos_modelos = obtener_ultimos_modelos()
 for modelo_path in ultimos_modelos:
     nombre_archivo = os.path.basename(modelo_path)
     id_entrenamiento = 'Entrenamiento_' + nombre_archivo.split('_')[-1].replace('.keras', '')
+
     # Extraer arquitectura desde el JSON de configuración
     config_path = f"./Entrenamiento/Config_Entrenamiento/config_{id_entrenamiento}.json"
     if os.path.exists(config_path):
@@ -83,21 +98,28 @@ for modelo_path in ultimos_modelos:
     nombre_modelo = f"modelo_{id_entrenamiento}"
 
     try:
+        # Cargar configuración del modelo
         config_img_size, config_batch_size = cargar_configuracion(id_entrenamiento)
+
+        # Cargar modelo
         model_tmp = keras.models.load_model(modelo_path, compile=False)
         input_shape = model_tmp.input_shape[1:3]
         IMG_SIZE = input_shape[0]
         BATCH_SIZE = config_batch_size if config_batch_size < len(X_val) else 32
+
+        # Preparar dataset
         val_dataset = tf.data.Dataset.from_tensor_slices((X_val, y_val)) \
             .map(lambda img, label: (tf.image.resize(img, [IMG_SIZE, IMG_SIZE]), label)) \
             .batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
 
+        # Compilar para evaluación
         model_tmp.compile(
             optimizer=keras.optimizers.RMSprop(learning_rate=LEARNING_RATE),
             loss=sparse_categorical_focal_loss(alpha=0.25),
             metrics=['accuracy']
         )
 
+        # Medir tiempo de predicción y calcular métricas
         start_time = time.time()
         y_pred_prob = model_tmp.predict(val_dataset)
         end_time = time.time()
@@ -120,6 +142,8 @@ for modelo_path in ultimos_modelos:
             "Macro_Recall": macro_recall,
             "Macro_Precision": macro_precision
         }
+
+        # Métricas por clase (precisión, recall, f1-score)
         for clase in ['0', '1', '2']:
             resultado[f'Precision_Clase_{clase}'] = report[clase]['precision']
             resultado[f'Recall_Clase_{clase}'] = report[clase]['recall']
@@ -127,8 +151,9 @@ for modelo_path in ultimos_modelos:
 
         resultados.append(resultado)
         
+        # Guardar resumen individual
         with open(os.path.join(base_path, 'Metricas', f'{nombre_modelo}_resumen.json'), 'w') as json_f:
-            json.dump(resultado, json_f, indent=4)
+            json.dump(resultado, json_f, indent = 4)
 
     except Exception as e:
         print(f"[ERROR] {nombre_modelo}: {e}")
@@ -138,7 +163,8 @@ for modelo_path in ultimos_modelos:
 df_resultados = pd.DataFrame(resultados)
 df_resultados.to_csv(os.path.join(base_path, 'Metricas', 'comparativa_ultimos_modelos.csv'), index=False)
 
-print("\nTOP 3 modelos por Macro F1:")
+# === MOSTRAR TOP 5 MODELOS POR MARCO F1 ===
+print("\nTOP 5 modelos por Macro F1:")
 top3 = df_resultados.sort_values(by='Macro_F1', ascending=False).head(5)
 for i, row in top3.iterrows():
     print(f"#{i+1} → {row['Nombre_Modelo']} ({row['Arquitectura']})")

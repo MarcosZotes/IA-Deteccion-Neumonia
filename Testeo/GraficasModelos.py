@@ -1,9 +1,24 @@
+# =============================================================================
+# Nombre del archivo: GraficasModelos.py
+# Autor: Marcos Zotes Calleja
+# Proyecto: Herramienta médica para la detección de tipos de neumonía basada en IA
+# Descripción:
+# Este script carga los resultados comparativos entre modelos y genera:
+# - Gráficas de barras por métrica global (Accuracy, F1, AUC, etc.)
+# - Radar plots por clase para los mejores modelos
+# - Scatter plot entre Macro F1 y AUC
+# - Exportación automática a Markdown (.md) y LaTeX (.tex) con las imágenes insertadas
+# =============================================================================
+
+# === IMPORTAR LIBRERÍAS ===
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+from math import pi
 import numpy as np
 
+# === CARGA DEL ARCHIVO DE MÉTRICAS ===
 # Ruta al archivo CSV generado por el comparador
 ruta_csv = './Testeo/Comparativas/Metricas/comparativa_ultimos_modelos.csv'
 df = pd.read_csv(ruta_csv)
@@ -31,9 +46,7 @@ for metrica in metricas_globales:
 
 print("[✔] Gráficas de barras generadas.")
 
-# Radar plot por clase para top 5
-from math import pi
-
+# Radar plot por clase para top 5 por Macro F1
 top3 = df.sort_values(by='Macro_F1', ascending=False).head(5)
 
 for _, row in top3.iterrows():

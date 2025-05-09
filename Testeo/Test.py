@@ -1,3 +1,31 @@
+# =============================================================================
+# Nombre del proyecto: Herramenta de apoyo para la detección de neumonía
+# Autor: Marcos Zotes Calleja
+# Universidad: Universidad Internacional de La Rioja (UNIR)
+# Grado: Grado en Ingeniería Informática
+# Trabajo Fin de Estudios (TFE)
+# Curso académico: 2024/2025
+# Fecha: 
+# Versión: 1.0
+#
+# Descripción:
+# Este script realiza el preprocesamiento de datos para el entrenamiento de modelos
+# de clasificación de imágenes de rayos X. Sus funcionalidades incluyen:
+#
+# - Carga de imágenes desde carpetas organizadas por conjuntos (train, val, test).
+# - Clasificación de imágenes en tres clases: NORMAL, PNEUMONIA_VIRAL y PNEUMONIA_BACTERIAL.
+# - Balanceo automático de las clases para evitar sesgo.
+# - División estratificada en conjuntos de entrenamiento, validación y test.
+# - Guardado de los datos en archivos .npy para uso eficiente en modelos de IA.
+# - Generación de gráficas de distribución de clases.
+# - Exportación de un resumen en formato JSON para verificación posterior.
+#
+# Derechos de autor © 2025 Marcos Zotes Calleja. Todos los derechos reservados.
+# Este código es parte del Trabajo de Fin de Estudios. Su uso o distribución requiere
+# autorización expresa del autor.
+# =============================================================================
+
+# === IMPORTAR LIBRERÍAS ===
 import os
 import numpy as np
 import tensorflow as tf
@@ -54,7 +82,7 @@ model.compile(optimizer=keras.optimizers.RMSprop(learning_rate=LEARNING_RATE),
               metrics=['accuracy'])
 
 # === GUARDAR MODELO COMO "modelo_final.keras" ===
-modelo_final_save_path = './ModelosGuardados/modelo_final.keras'
+modelo_final_save_path = './Modelo Final/modelo_final.keras'
 model.save(modelo_final_save_path)
 print(f"[✔] Copia del modelo guardada en: {modelo_final_save_path}")
 

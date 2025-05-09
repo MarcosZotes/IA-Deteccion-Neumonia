@@ -1,3 +1,15 @@
+# =============================================================================
+# Nombre del archivo: GenerarResultados.py
+# Autor: Marcos Zotes Calleja
+# Universidad: Universidad internacional de La Rioja
+# Proyecto: Herramienta médica para la detección de tipos de neumonía basada en IA
+# Descripción:
+# Script para evaluar un modelo entrenado. Genera métricas clave como F1-score, precisión, AUC, matriz de
+# confusión y curvas ROC, además de visualizaciones interpretables con Grad-CAM.
+# Este análisis se aplica al conjunto de validación.
+# =============================================================================
+
+# === IMPOTAR LIBRERÍAS ===
 import os
 import numpy as np
 import pandas as pd
@@ -12,7 +24,7 @@ from tensorflow.keras.applications.efficientnet import preprocess_input
 from tensorflow.keras import layers
 
 # === CONFIGURACIÓN ===
-ID_Entrenamiento = "Entrenamiento_8676"  # Sustituir por el ID que quieres analizar
+ID_Entrenamiento = "Entrenamiento_8676"  # Sustituir por el ID que se quiere analizar
 modelo_path = f"./ModelosGuardados/prueba_modelo_{ID_Entrenamiento}.keras"
 X_val = preprocess_input(np.load('./AnalisisDatos/val/X.npy').astype("float32"))
 y_val = np.load('./AnalisisDatos/val/y.npy')
@@ -24,7 +36,7 @@ val_dataset = tf.data.Dataset.from_tensor_slices((X_val, y_val)) \
     .map(lambda img, label: (tf.image.resize(img, [IMG_SIZE, IMG_SIZE]), label)) \
     .batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
 
-# === CARGA DEL MODELO ===
+# === CARGA DEL MODELO DE ENTRENAMIENTO ===
 model = keras.models.load_model(modelo_path, compile=False)
 
 # === PREDICCIONES Y MÉTRICAS ===
@@ -32,15 +44,17 @@ y_pred_prob = model.predict(val_dataset)
 y_pred = np.argmax(y_pred_prob, axis=1)
 y_val_bin = keras.utils.to_categorical(y_val, num_classes=3)
 
-# Reporte detallado
+# Reporte detallado de métricas por clase
 report = classification_report(y_val, y_pred, output_dict=True, zero_division=0)
 df_report = pd.DataFrame(report).transpose()
+
+# Calculo de métricas globales
 macro_f1 = f1_score(y_val, y_pred, average='macro')
 macro_precision = precision_score(y_val, y_pred, average='macro')
 macro_recall = recall_score(y_val, y_pred, average='macro')
 auc_value = roc_auc_score(y_val_bin, y_pred_prob, multi_class="ovr")
 
-# === GUARDAR MÉTRICAS ===
+# === GUARDAR MÉTRICAS EN CSV ===
 resultados_path = "./Entrenamiento/MetricasPorEntrenamiento"
 os.makedirs(resultados_path, exist_ok=True)
 

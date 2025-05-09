@@ -1,5 +1,6 @@
 # =============================================================================
-# Nombre del proyecto: 
+# Nombre del proyecto: Herramenta mediaca para la detección de tipos de neumonía basada en IA
+# Nombre del archivo: Entrenamiento.py
 # Autor: Marcos Zotes Calleja
 # Universidad: Universidad Internacional de La Rioja (UNIR)
 # Grado: Grado en Ingeniería Informática
@@ -10,7 +11,7 @@
 #
 # Descripción:
 # Este script entrena un modelo de red neuronal convolucional con transferencia de aprendizaje
-# (EfficientNetB0) para clasificar imágenes de rayos X de tórax en tres clases:
+# (EfficientNetB0, B1 o B2) para clasificar imágenes de rayos X de tórax en tres clases:
 # - Clase 0: Normal
 # - Clase 1: Neumonía Vírica
 # - Clase 2: Neumonía Bacteriana
@@ -28,7 +29,7 @@
 
 # Importación de librerías estándar y específicas para la contrucion del modelo, métricas y visualización
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' # Ocuala avisos de bajo nivel de TensorFlow
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 import json
 import warnings
@@ -53,7 +54,13 @@ from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCh
 from tensorflow.keras.optimizers.schedules import CosineDecay
 from sklearn.metrics import classification_report, roc_auc_score, confusion_matrix, precision_score, recall_score, f1_score, roc_curve, auc
 
+
+# === DEFINICIÓN DE LA FUNNCiÓN LOCAL LOSS PERSONALIZADA ===
 def sparse_categorical_focal_loss(gamma=2., alpha=None):
+    """
+    Implementación personalizada de focal loss para clasificación multiclase con etiquetas enteras.
+    Penaliza más los errores en clases menos representadas, mejorando el aprendizaje en conjuntos desbalanceados.
+    """
     def loss(y_true, y_pred):
         y_true = K.cast(y_true, dtype='int32')
         y_true_one_hot = K.one_hot(y_true, num_classes=K.shape(y_pred)[-1])
@@ -68,17 +75,17 @@ def sparse_categorical_focal_loss(gamma=2., alpha=None):
         return alpha_factor * focal_weight * cross_entropy
     return loss
 
-# Silenciar logs
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-warnings.filterwarnings('ignore')
 
-# Carpetas necesarias
+# === CONFIGURACIÓN DE ENTORNO Y CARPETAS ===
 os.makedirs('./Entrenamiento', exist_ok=True)
 os.makedirs('./ModelosGuardados', exist_ok=True)
 os.makedirs('./Entrenamiento/Config_Entrenamiento', exist_ok=True)
 
-# ID incremental
+# === GENERACIÓN DE ID DE ENTRENAMIENTO ===
 def generar_id_entrenamiento(carpeta='./Entrenamiento'):
+    """
+    Genera un ID incremental único para cada sesión de entrenamiento, registrando el historial en CSV.
+    """
     path = os.path.join(carpeta, 'historial_entrenamiento.csv')
     if not os.path.exists(path):
         return "Entrenamiento_1"
@@ -90,13 +97,13 @@ def generar_id_entrenamiento(carpeta='./Entrenamiento'):
 
 ID_Entrenamiento = generar_id_entrenamiento()
 
-# Parámetros
+# === DEFINICIÓN DE HIPERPARÁMETROS ===
 IMG_SIZE = 224
 BATCH_SIZE = 32
 EPOCHS = 60
 LEARNING_RATE = 1e-4
 
-# Cargar datos y aplicar preprocesado de EfficientNet
+# === CARGA Y PREPROCESAMIENTO DE DATOS ===
 X_train = preprocess_input(np.load('./AnalisisDatos/train/X.npy').astype("float32"))
 y_train = np.load('./AnalisisDatos/train/y.npy')
 X_val = preprocess_input(np.load('./AnalisisDatos/val/X.npy').astype("float32"))
@@ -107,7 +114,7 @@ print("Distribución y_val:", np.unique(y_val, return_counts=True))
 print(f"X_train shape: {X_train.shape}, y_train shape: {y_train.shape}")
 print("Valores únicos y_train:", np.unique(y_train))
 
-# Augmentación leve
+# Aumento de datos leve (general para todas las clases)
 data_augmentation = keras.Sequential([
     layers.RandomFlip("horizontal"),
     layers.RandomRotation(0.1),
@@ -116,7 +123,7 @@ data_augmentation = keras.Sequential([
     layers.RandomContrast(0.1),
 ])
 
-# Preprocesamiento (redimensionado + augmentation)
+# === DEFINICIÓN DE FUNCIONES DE PREPROCESAMIENTO PARA DATASET ===
 def preprocess_image_train(image, label):
     image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
     image = data_augmentation(image)
@@ -126,15 +133,16 @@ def preprocess_image_val(image, label):
     image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
     return image, label
 
+# === AUGMENTACIÓN Y BALANCEO DE DATOS ===
+# Oversampling de clase 1 (neumonía vírica), triplicada
 mask_class1 = y_train == 1
 X_class1 = X_train[mask_class1]
 y_class1 = y_train[mask_class1]
 
-# Duplica clase 1 (puedes ajustar cuántas veces según la diferencia real)
 X_train = np.concatenate([X_train, X_class1, X_class1])
 y_train = np.concatenate([y_train, y_class1, y_class1])
 
-# Dataset
+# === CREACIÓN DE DATASETS PARA ENTRENAMIENTO Y VALIDACIÓN ===
 train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train)).map(preprocess_image_train).shuffle(1024).batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
 val_dataset = tf.data.Dataset.from_tensor_slices((X_val, y_val)).map(preprocess_image_val).batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
 
@@ -145,7 +153,8 @@ for layer in base_model.layers[:75]:
 for layer in base_model.layers[75:]:
     layer.trainable = True
 
-
+# Construcción del modelo con EfficientNetB0
+# y capas adicionales
 inputs = keras.Input(shape=(IMG_SIZE, IMG_SIZE, 3))
 x = base_model(inputs, training=False)
 x = layers.GlobalAveragePooling2D()(x)
@@ -156,6 +165,7 @@ x = layers.BatchNormalization()(x)
 x = layers.Dropout(0.2)(x)
 outputs = layers.Dense(3, activation='softmax')(x)
 
+# Compilación con optimizador AdamW + CosineDecay y Focal Loss
 lr_schedule = CosineDecay(initial_learning_rate=1e-4, decay_steps=3000)
 optimizer = AdamW(learning_rate=lr_schedule, weight_decay=1e-4)
 
@@ -176,14 +186,14 @@ if conv_layers:
 else:
     print("\n[ERROR] No se encontraron capas Conv2D dentro de EfficientNetB0.")
 
-# Callbacks
+# === CALLBACKS ===
 early_stopping = EarlyStopping(monitor='val_loss', patience=15, restore_best_weights=True)
 model_checkpoint = ModelCheckpoint(f'./ModelosGuardados/prueba_modelo_{ID_Entrenamiento}.keras', monitor='val_accuracy', save_best_only=True, verbose=1)
 
 class_weights = compute_class_weight('balanced', classes=np.unique(y_train), y=y_train)
 class_weights = dict(enumerate(class_weights))
 
-# === ENTRENAMIENTO ===
+# === ENTRENAMIENTO DEL MODELO ===
 history = model.fit(train_dataset,
                     validation_data=val_dataset,
                     epochs=EPOCHS,
