@@ -24,12 +24,12 @@ from tensorflow.keras.applications.efficientnet import preprocess_input
 from tensorflow.keras import layers
 
 # === CONFIGURACIÓN ===
-ID_Entrenamiento = "Entrenamiento_8676"  # Sustituir por el ID que se quiere analizar
+ID_Entrenamiento = "Entrenamiento_86733"  # Sustituir por el ID que se quiere analizar
 modelo_path = f"./ModelosGuardados/prueba_modelo_{ID_Entrenamiento}.keras"
 X_val = preprocess_input(np.load('./AnalisisDatos/val/X.npy').astype("float32"))
 y_val = np.load('./AnalisisDatos/val/y.npy')
-IMG_SIZE = 260  # Tamaño de imagen para el modelo, puede ser 224, 260 o 300
-BATCH_SIZE = 16
+IMG_SIZE = 224  # Tamaño de imagen para el modelo, puede ser 224, 260 o 300
+BATCH_SIZE = 16  # Tamaño del batch, puede ser 16, 32 o 64
 
 # === DATASET VALIDACIÓN ===
 val_dataset = tf.data.Dataset.from_tensor_slices((X_val, y_val)) \
@@ -185,5 +185,39 @@ for i in range(3):
     plt.title(f"Pred: {pred_class} | Real: {label}")
     plt.savefig(f"{gradcam_path}/gradcam_{i}.png")
     plt.close()
+
+# === EXPORTAR MÉTRICAS AL ARCHIVO GLOBAL ===
+csv_global_path = "./Graficas/metricas_resultados_completas.csv"
+os.makedirs("./Graficas", exist_ok=True)
+
+fila = pd.DataFrame([{
+    "ID_Entrenamiento": ID_Entrenamiento,
+    "Accuracy": np.mean(y_pred == y_val),
+    "Macro_F1": macro_f1,
+    "Macro_Precision": macro_precision,
+    "Macro_Recall": macro_recall,
+    "AUC": auc_value,
+    "Precision_Clase_0": report["0"]["precision"],
+    "Recall_Clase_0": report["0"]["recall"],
+    "F1_Clase_0": report["0"]["f1-score"],
+    "Precision_Clase_1": report["1"]["precision"],
+    "Recall_Clase_1": report["1"]["recall"],
+    "F1_Clase_1": report["1"]["f1-score"],
+    "Precision_Clase_2": report["2"]["precision"],
+    "Recall_Clase_2": report["2"]["recall"],
+    "F1_Clase_2": report["2"]["f1-score"],
+}])
+
+# Si existe el archivo, actualiza; si no, crea nuevo
+if os.path.exists(csv_global_path):
+    df_global = pd.read_csv(csv_global_path)
+    df_global = df_global[df_global["ID_Entrenamiento"] != ID_Entrenamiento]
+    df_global = pd.concat([df_global, fila], ignore_index=True)
+else:
+    df_global = fila
+
+df_global.to_csv(csv_global_path, index=False)
+print(f"[✔] CSV global actualizado en: {csv_global_path}")
+
 
 print(f"[✔] Análisis completo del entrenamiento {ID_Entrenamiento}")
