@@ -39,6 +39,8 @@ from tensorflow.keras.applications.efficientnet import preprocess_input
 from sklearn.metrics import roc_auc_score, f1_score, recall_score, precision_score, confusion_matrix, classification_report, roc_curve, auc
 import tensorflow.keras.backend as K
 from collections import Counter
+from tensorflow.keras.layers import Input
+from tensorflow.keras.models import Model
 import time
 import shutil
 
@@ -46,7 +48,7 @@ import shutil
 IMG_SIZE = 224
 BATCH_SIZE = 16
 LEARNING_RATE = 1e-4
-timestamp = "20250412_105257"
+timestamp = "20250412_123456"  # Cambiar por la fecha y hora actual o un ID único
 modelo_final_path = './ModelosGuardados/prueba_modelo_Entrenamiento_86733.keras'
 resultados_path = './Resultados'
 os.makedirs(resultados_path, exist_ok=True)
@@ -85,6 +87,15 @@ model.compile(optimizer=keras.optimizers.RMSprop(learning_rate=LEARNING_RATE),
 modelo_final_save_path = './Modelo Final/modelo_final.keras'
 model.save(modelo_final_save_path)
 print(f"[✔] Copia del modelo guardada en: {modelo_final_save_path}")
+
+# Reconstruir modelo con input simple (sin nombre)
+inputs = Input(shape=(IMG_SIZE, IMG_SIZE, 3))
+outputs = model(inputs)
+
+modelo_simple = Model(inputs=inputs, outputs=outputs)
+modelo_simple_save_path = './Modelo Final/modelo_final_simple.keras'
+modelo_simple.save(modelo_simple_save_path, save_format='keras')
+print(f"[✔] Modelo simplificado guardado en: {modelo_simple_save_path}")
 
 # === PREDICCIÓN Y MÉTRICAS ===
 start = time.time()
@@ -270,7 +281,7 @@ for i, idx in enumerate(sample_idx, start=1):
         plt.figure(figsize=(6, 6))
         plt.imshow(grad_cam_image)
         plt.axis('off')
-        plt.title(f"Grad-CAM - Pred: {clase_pred} Real: {clase_real}")
+        plt.title(f"Grad-CAM – Pred: {clase_pred} Real: {clase_real}")
         file_name = f"grad_cam_{i}_pred_{clase_pred}_real_{clase_real}.png"
         plt.tight_layout()
         plt.savefig(os.path.join(img_gradcam_path, file_name))
@@ -404,18 +415,18 @@ for i in range(3):
     fpr, tpr, _ = roc_curve(y_test_bin[:, i], y_pred_prob[:, i])
     roc_auc = auc(fpr, tpr)
     plt.plot(fpr, tpr, color=colores[i], lw=2,
-             label=f'{clases[i]} (AUC = {roc_auc:.4f})')
+             label=f'{clases[i]} (AUC = {roc_auc:.3f})')
 
 # Diagonal de referencia
 plt.plot([0, 1], [0, 1], 'k--', lw=2)
 
-plt.xlim([0.0, 1.0])
+plt.xlim([-0.02, 1.0])
 plt.ylim([0.0, 1.05])
 plt.xlabel('Tasa de Falsos Positivos (FPR)')
 plt.ylabel('Tasa de Verdaderos Positivos (TPR)')
-plt.title('Curva ROC por clase')
+plt.title('Curva ROC – Entrenamiento_86733')
 plt.legend(loc='lower right')
-plt.grid(alpha=0.3)
+plt.grid(alpha=1.0)
 
 roc_path = os.path.join(resultados_path, f"curva_roc_por_clase_{timestamp}.png")
 plt.savefig(roc_path)

@@ -66,7 +66,7 @@ for _, row in top3.iterrows():
     plt.xticks(angles[:-1], etiquetas, color='grey', size=8, rotation=45)
     ax.plot(angles, valores, linewidth=2, linestyle='solid', label=row['Nombre_Modelo'])
     ax.fill(angles, valores, alpha=0.3)
-    plt.title(f'Radar por clase - {row["Nombre_Modelo"]}', size=14)
+    plt.title(f'Radar por clase – {row["Nombre_Modelo"]}', size=14)
     plt.tight_layout()
     plt.savefig(os.path.join(graficas_path, f'radar_{row["Nombre_Modelo"]}.png'))
     plt.close()
@@ -101,7 +101,7 @@ with open(md_path, 'w', encoding='utf-8') as f:
 
     # Radar plots
     for _, row in top3.iterrows():
-        f.write(f"## Radar por clase - {row['Nombre_Modelo']}\n")
+        f.write(f"## Radar por clase – {row['Nombre_Modelo']}\n")
         f.write(f"![Radar_{row['Nombre_Modelo']}](./radar_{row['Nombre_Modelo']}.png)\n\n")
 
     # Scatter plot
@@ -113,7 +113,7 @@ print(f"[✔] Archivo Markdown generado: {md_path}")
 # === EXPORTAR A .tex ===
 tex_path = os.path.join(graficas_path, 'graficas_resultados.tex')
 with open(tex_path, 'w', encoding='utf-8') as f:
-    f.write("\\section{Comparativa de Modelos IA - Gráficas}\n")
+    f.write("\\section{Comparativa de Modelos IA – Gráficas}\n")
 
     # Gráficas de barras
     for metrica in metricas_globales:

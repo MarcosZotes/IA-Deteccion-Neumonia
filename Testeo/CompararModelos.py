@@ -70,7 +70,7 @@ def sparse_categorical_focal_loss(gamma=2., alpha=0.25):
     return loss
 
 # === FUNCIÓN: OBTENER ÚLTIMOS MODELOS GUARDADOS ===
-def obtener_ultimos_modelos(carpeta='./ModelosGuardados', cantidad=50, filtro_ids=None):
+def obtener_ultimos_modelos(carpeta='./ModelosGuardados', cantidad=100, filtro_ids=None):
     archivos = [f for f in os.listdir(carpeta) if f.endswith('.keras') and f.startswith('prueba_modelo')]
     if filtro_ids:
         archivos = [f for f in archivos if any(id_ in f for id_ in filtro_ids)]
