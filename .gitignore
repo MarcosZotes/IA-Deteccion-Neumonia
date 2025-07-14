@@ -53,3 +53,15 @@ MatrizConfusion/
 
 # Ignorar toda la carpeta PredccionesIncorrectas
 PrediccionesIncorrectas/
+
+# Prueba.py para detectar la informacion del modelo creado
+Prueba.py
+
+# Ignorar .py para la recuperacion de la configuración del modelo 33
+RecuperacionModelo33.py
+
+# Ignorar las imagenes analizadas en la interfaz
+ImagenesAnalizadas/
+
+# Ignorar imagenes gradCAM
+./InterfazWeb/static/GradCAM
