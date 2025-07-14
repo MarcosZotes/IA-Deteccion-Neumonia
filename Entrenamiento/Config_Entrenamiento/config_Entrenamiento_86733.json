@@ -1,0 +1,23 @@
+{
+  "ID_Entrenamiento": "Entrenamiento_86733",
+  "Modelo": "EfficientNetB0 + FineTuning parcial",
+  "Tamaño_imagen": 224,
+  "Batch_size": 16,
+  "Epochs": 60,
+  "Optimizador": "RMSprop(momentum=0.9)",
+  "Learning_rate": 1e-05,
+  "Dropout": [0.3, 0.2],
+  "Augmentacion": [
+    "RandomFlip",
+    "RandomRotation",
+    "RandomZoom",
+    "RandomTranslation",
+    "RandomContrast"
+  ],
+  "Loss": "sparse_categorical_focal_loss(gamma=2.0, alpha=0.25)",
+  "FocalLoss_gamma": 2.0,
+  "FocalLoss_alpha": 0.25,
+  "Normalización visual": "preprocess_input (EfficientNet)",
+  "Mejor_val_accuracy": null,
+  "Ruta_modelo_guardado": "./ModelosGuardados/prueba_modelo_Entrenamiento_86733.keras"
+}
