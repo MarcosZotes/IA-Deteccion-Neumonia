@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Historial de Análisis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f8fa;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .registro {
+            margin-bottom: 40px;
+            padding: 20px;
+            border-bottom: 1px solid #ccc;
+        }
+        .imagenes {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 10px;
+        }
+        .imagenes img {
+            max-width: 300px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        }
+        .info {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 1.1em;
+        }
+        .descarga {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .descarga a {
+            text-decoration: none;
+            background-color: #2ecc71;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        .descarga a:hover {
+            background-color: #27ae60;
+        }
+        .volver {
+            text-align: center;
+            margin-top: 50px;
+        }
+        .volver a {
+            text-decoration: none;
+            background-color: #3498db;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        .volver a:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Historial de Análisis</h1>
+
+    {% for reg in registros|reverse %}
+    <div class="registro">
+        <div class="info">
+            <strong>Fecha:</strong> {{ reg.fecha }} |
+            <strong>Predicción:</strong> {{ reg.prediccion }} |
+            <strong>Confianza:</strong> {{ reg.confianza }}%
+        </div>
+        <div class="imagenes">
+            <div>
+                <p>Imagen Original</p>
+                <img src="{{ url_for('static', filename=reg.ruta_original) }}" alt="original">
+            </div>
+            <div>
+                <p>Grad-CAM</p>
+                <img src="{{ url_for('static', filename=reg.ruta_gradcam) }}" alt="gradcam">
+            </div>
+        </div>
+        <div class="descarga">
+            <a href="{{ url_for('static', filename='Resultados/informe_' + reg.fecha + '.pdf') }}" download>
+                📄 Descargar informe PDF
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="volver">
+        <a href="{{ url_for('inicio') }}">Analizar otra imagen</a>
+    </div>
+</body>
+</html>

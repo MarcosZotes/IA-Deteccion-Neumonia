@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultado del Análisis con IA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f8fa;
+            text-align: center;
+            padding: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .resultado {
+            margin-top: 40px;
+        }
+        .imagen-ajustada {
+            margin-top: 20px;
+            max-width: 400px;
+            width: 100%;
+            height: auto;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        .texto-explicativo {
+            margin-top: 25px;
+            color: #555;
+            font-size: 1.1em;
+        }
+        .boton {
+            margin-top: 40px;
+        }
+        .boton a {
+            text-decoration: none;
+            background-color: #3498db;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        .boton a:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Resultado del Análisis con IA</h1>
+
+    <div class="resultado">
+        <h2>Predicción: {{ clase }}</h2>
+        <p>Confianza: {{ confianza }}%</p>
+
+        <div class="texto-explicativo">
+            <strong>Imagen original:</strong><br>
+            Esta es la radiografía original que fue analizada por el modelo.
+        </div>
+        <img src="{{ ruta_original }}" alt="Imagen Original" class="imagen-ajustada">
+
+        <div class="texto-explicativo">
+            <strong>Visualización Grad-CAM:</strong><br>
+            Mapa de calor que muestra las zonas en las que el modelo se ha basado para tomar su decisión.
+        </div>
+        <img src="{{ ruta_gradcam }}" alt="Imagen Grad-CAM" class="imagen-ajustada">
+    </div>
+
+    <!-- Botón para descargar PDF -->
+    <div class="boton">
+        <a href="{{ ruta_pdf }}" download>Descargar Informe en PDF</a>
+    </div>
+
+    <!-- Botón para volver a la página de inicio -->
+    <div class="boton">
+        <a href="{{ url_for('inicio') }}">Analizar otra imagen</a>
+    </div>
+</body>
+</html>
